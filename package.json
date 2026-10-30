@@ -1,0 +1,17 @@
+{
+  "name": "laundry-platform",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:admin": "npm run dev --workspace=apps/admin-web",
+    "dev:staff": "npm run dev --workspace=apps/staff-pwa",
+    "dev:customer": "npm run dev --workspace=apps/customer-web",
+    "build": "npm run build --workspaces"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}
