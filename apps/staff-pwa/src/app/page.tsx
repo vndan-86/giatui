@@ -1,69 +1,68 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@laundry/shared/src/supabaseClient';
+import { getCurrentUserProfile, CurrentUserProfile } from '@laundry/shared/src/auth';
 
 export default function StaffIntakePage() {
+  const router = useRouter();
   const supabase = createClient();
-  const [orderCode, setOrderCode] = useState('');
-  const [weight, setWeight] = useState('');
-  const [status, setStatus] = useState<string | null>(null);
+  const [userProfile, setUserProfile] = useState<CurrentUserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const handleQuickIntake = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setStatus('Đang ghi nhận...');
-
-    const { data, error } = await supabase.from('branches').select('id, name').limit(1);
-
-    if (error) {
-      setStatus(`Lỗi: ${error.message}`);
-    } else {
-      setStatus(`Kết nối Supabase thành công! Chi nhánh mẫu: ${data[0]?.name || 'Chưa tạo'}`);
+  useEffect(() => {
+    async function checkAuth() {
+      const profile = await getCurrentUserProfile();
+      if (!profile) {
+        router.push('/login');
+        return;
+      }
+      setUserProfile(profile);
+      setLoading(false);
     }
+    checkAuth();
+  }, [router]);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push('/login');
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-400">
+        Đang tải thông tin ca làm việc...
+      </div>
+    );
+  }
+
+  const primaryBranch = userProfile?.branches.find(b => b.is_primary) || userProfile?.branches[0];
+
   return (
-    <main className="min-h-screen bg-slate-900 text-slate-100 p-6 flex flex-col items-center">
-      <div className="w-full max-w-md bg-slate-800 p-6 rounded-2xl shadow-xl border border-slate-700">
-        <h1 className="text-xl font-bold mb-4 text-emerald-400">Trạm Tiếp Nhận Giặt Ủi (Staff PWA)</h1>
+    <main className="min-h-screen bg-slate-950 text-slate-100 p-4 flex flex-col items-center">
+      <header className="w-full max-w-md flex justify-between items-center mb-6 pb-3 border-b border-slate-800">
+        <div>
+          <h2 className="font-bold text-white text-sm">{userProfile?.name}</h2>
+          <span className="text-xs text-emerald-400">
+            {primaryBranch ? primaryBranch.name : 'Chưa gán chi nhánh'}
+          </span>
+        </div>
+        <button
+          onClick={handleSignOut}
+          className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-md transition"
+        >
+          Đăng xuất
+        </button>
+      </header>
+
+      <div className="w-full max-w-md bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xl space-y-4">
+        <h1 className="text-lg font-bold text-emerald-400">Trạm Tiếp Nhận Giặt Ủi</h1>
+        <p className="text-xs text-slate-400">Sẵn sàng nhận đồ và gán mã QR cho túi giặt.</p>
         
-        <form onSubmit={handleQuickIntake} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Mã túi / Mã QR</label>
-            <input 
-              type="text" 
-              placeholder="Quét mã QR..." 
-              value={orderCode} 
-              onChange={(e) => setOrderCode(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white outline-none focus:border-emerald-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Khối lượng cân thực tế (kg)</label>
-            <input 
-              type="number" 
-              step="0.1" 
-              placeholder="VD: 5.5" 
-              value={weight} 
-              onChange={(e) => setWeight(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white outline-none focus:border-emerald-500"
-            />
-          </div>
-
-          <button 
-            type="submit" 
-            className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 rounded-lg transition"
-          >
-            Xác Nhận Cân & Kiểm Tra
-          </button>
-        </form>
-
-        {status && (
-          <div className="mt-4 p-3 bg-slate-950 border border-slate-700 rounded-lg text-sm text-center">
-            {status}
-          </div>
-        )}
+        <div className="p-4 bg-slate-950 border border-dashed border-slate-700 rounded-xl text-center">
+          <p className="text-xs text-slate-400">Chờ quét mã QR túi giặt hoặc tạo đơn mới</p>
+        </div>
       </div>
     </main>
   );

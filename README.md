@@ -3,10 +3,10 @@
 Monorepo hỗ trợ Supabase & Netlify cho chuỗi giặt ủi.
 
 ## Cấu trúc
-- `apps/admin-web`: Quản trị hệ thống & chi nhánh (Next.js)
-- `apps/staff-pwa`: Trạm tiếp nhận, máy giặt, quét QR (Next.js PWA)
+- `apps/admin-web`: Quản trị hệ thống & chi nhánh (Next.js) - có Auth & Dashboard
+- `apps/staff-pwa`: Trạm tiếp nhận, máy giặt, quét QR (Next.js PWA) - có Auth & Profile
 - `apps/customer-web`: Portal khách hàng (Next.js)
-- `packages/shared`: Thư viện kết nối Supabase và types chung
+- `packages/shared`: Thư viện kết nối Supabase, helper lấy User Profile & RBAC
 
 ## Cài đặt
 ```bash
